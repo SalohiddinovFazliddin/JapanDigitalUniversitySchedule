@@ -9,13 +9,23 @@ use Illuminate\Http\Request;
 class GroupController extends Controller
 {
 
-    public function index(Group $request)
+    public function index(Request $request)
     {
-        $perPage = $request->get('per_page', 10);
-        $groups = Group::query()->paginate($perPage);
-        return response()->json($groups);
-    }
+        $query = Group::query();
 
+        if ($request->has('search')) {
+            $query->where('name', 'like', '%' . $request->get('search') . '%');
+        }
+
+        if ($request->has('sort')) {
+            $query->where('sort', $request->get('group'));
+        }
+
+        $perPage = $request->get('per_page', 10);
+        $group = $query->paginate($perPage);
+
+        return response()->json($group);
+    }
 
     public function show(Group $group)
     {

@@ -11,9 +11,20 @@ class SubjectController extends Controller
 
     public function index(Request $request)
     {
+        $query = Subject::query();
+
+        if ($request->has('search')) {
+            $query->where('name', 'like', '%' . $request->get('search') . '%');
+        }
+
+        if ($request->has('sort')) {
+            $query->where('sort', $request->get('status'));
+        }
+
         $perPage = $request->get('per_page', 10);
-        $subjects = Subject::query()->paginate($perPage);
-            return response()->json($subjects);
+        $subjects = $query->paginate($perPage);
+
+        return response()->json($subjects);
     }
 
 
