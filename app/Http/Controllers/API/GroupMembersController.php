@@ -3,85 +3,41 @@
 namespace App\Http\Controllers\API;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\StoreGroupMemberRequest;
+use App\Http\Requests\UpdateGroupMemberRequest;
+use App\Models\Group;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\DB;
 
 class GroupMembersController extends Controller
 {
-    /**
-     * Barcha group_subjects yozuvlarini olish
-     */
-    public function index()
+    public function store(StoreGroupMemberRequest $request)
     {
-        $groupMembers = DB::table('group_members')->get();
-        return response()->json($groupMembers);
-    }
+        $validator = $request->validated();
 
-    /**
-     * Yangi group_subject qo'shish
-     */
-    public function store(Request $request)
+        $group=Group::query()->findOrFail($validator['group_id']);
+        $group->students()->attach($validator['user_id'], ['created_at' => now(), 'updated_at' => now()]);
+
+
+        return response()->json(['message' => 'Student attached to group successfully'], 201);
+    }
+    public function update(string $id, UpdateGroupMemberRequest $request)
     {
-        $request->validate([
-            'group_id' => 'required|exists:groups,id',
-            'member_id' => 'required|exists:members,id',
+        $validator = $request->validated();
+        $group=Group::query()->findOrFail($id);
+
+        $group->students()->detach($validator['user_id']);
+
+        return response()->json(['message'=>'Student update from group successfully'], 200);
+
+    }
+    public function destroy(string $id,Request $request)
+    {
+        $validator=$request->validate([
+            'group_id'=>'required|exists:groups,id'
         ]);
-
-        DB::table('group_members')->insert([
-            'group_id' => $request->group_id,
-            'members_id' => $request->members_id,
-        ]);
-
-        return response()->json(['message' => 'GroupMember added successfully!'], 201);
+        $group=Group::query()->findOrFail($validator['group_id']);
+        $group->students()->detach($id);
+        return response()->json(['message'=>'Student  detached from group successfully'], 200);
     }
 
-    /**
-     * Bitta group_subject ni olish
-     */
-    public function show($id)
-    {
-        $groupMember = DB::table('group_members')->where('id', $id)->first();
-
-        if (!$groupMember) {
-            return response()->json(['message' => 'GroupMembers not found'], 404);
-        }
-
-        return response()->json($groupMember);
-    }
-
-    /**
-     * group_subject yangilash
-     */
-    public function update(Request $request, $id)
-    {
-        $request->validate([
-            'group_id' => 'sometimes|exists:groups,id',
-            'members_id' => 'sometimes|exists:members,id',
-        ]);
-
-        $updated = DB::table('group_members')->where('id', $id)->update([
-            'group_id' => $request->group_id,
-            'member_id' => $request->member_id,
-        ]);
-
-        if (!$updated) {
-            return response()->json(['message' => 'GroupMembers not found'], 404);
-        }
-
-        return response()->json(['message' => 'GroupMembers updated successfully!']);
-    }
-
-    /**
-     * group_subject ni o'chirish
-     */
-    public function destroy($id)
-    {
-        $deleted = DB::table('group_members')->where('id', $id)->delete();
-
-        if (!$deleted) {
-            return response()->json(['message' => 'GroupMembers not found'], 404);
-        }
-
-        return response()->json(['message' => 'GroupMembers deleted successfully!']);
-    }
 }
