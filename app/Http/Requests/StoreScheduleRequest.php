@@ -3,6 +3,7 @@
 namespace App\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
 
 class StoreScheduleRequest extends FormRequest
 {
@@ -21,14 +22,27 @@ class StoreScheduleRequest extends FormRequest
      */
     public function rules(): array
     {
-        return [
-            'subject_id' => 'required|exists:subjects,id',
-            'user_id' => 'required|exists:users,id',
-            'group_id' => 'required|exists:groups,id',
-            'room_id' => 'required|exists:rooms,id',
-            'pair' => 'required|integer|between:1,7',
-            'week_day' => 'required|string|in:Mon,Tue,Wed,Thu,Fri,Sat,Sun',
-            'date' => 'required|date',
-        ];
+       return [
+           'subject_id' => 'required|exists:subjects,id',
+           'teacher_id' => [
+               'required',
+               'exists:teachers,id',
+               Rule::unique('schedules', 'teacher_id')->where(fn ($query) => $query->where('pair', $this->date)->where('week_day', $this->week_day)->where('date',$this->date))
+           ],
+           'group_id' =>[
+               'required',
+               'exists:groups,id',
+               Rule::unique('schedules', 'group_id')->where(fn ($query) => $query->where('pair', $this->date)->where('week_day', $this->week_day)->where('date',$this->date))
+           ],
+           'room_id' =>[
+               'required',
+               'exists:rooms,id',
+               Rule::unique('schedules', 'room_id')->where(fn ($query) => $query->where('pair', $this->date)->where('week_day', $this->week_day)->where('date',$this->date))
+
+           ],
+           'pair' => 'required|integer|between:1,7',
+           'week_day' => 'required|string|in:Mon,Tue,Wed,Thu,Fri,Sat,Sun',
+           'date' => 'required|date',
+       ];
     }
 }

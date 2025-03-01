@@ -25,17 +25,6 @@ class ScheduleController extends Controller
     public function store(StoreSubjectRequest $request)
     {
         $validated = $request->validated();
-        $schedule = Schedule::query()->where('subject_id', $validated['subject_id'])
-            ->where('teacher_id', $validated['teacher_id'])
-            ->where('group_id', $validated['group_id'])
-            ->where('pair', $validated['pair'])
-            ->where('week_day', $validated['week_day'])
-            ->where('date', $validated['date'])
-            ->first();
-
-        if ($schedule){
-            return response()->json(['message'=>'Schedule already exists'], 409);
-        }
 
         Schedule::query()->create($validated);
         return response()->json(['message'=>'Schedule created successfully'], 201);
@@ -48,7 +37,6 @@ class ScheduleController extends Controller
     public function update(UpdateScheduleRequest $request, $id)
     {
         $validated = $request->validated();
-        $subject = update($validated);
         return response()->json(['message'=>'Schedule updated successfully'], 200);
     }
 

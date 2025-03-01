@@ -37,11 +37,8 @@ class AuthController extends Controller
         }
         $token = $user->createToken('my-app-token')->plainTextToken;
 
-        return response()->json([
-            'message' => 'Logged in successfully.',
-            'token' => $token,
-            'user' => $user
-        ]);
+        return success_response(true);
+
     }
     public function logout(Request $request)
     {
